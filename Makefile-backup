@@ -1,0 +1,55 @@
+#Project particularities
+TARGET = sc_module.x
+SYSTEMC = /usr/local/systemc-2.3.1
+TARGET_ARCH = linux64
+SRCDIR = src
+HDRDIR = hdr
+TBDIR  = tb/tb_Reliability
+
+#Compiler
+CC = g++
+INCDIR = -I$(SYSTEMC)/include
+CFLAGS = -g -Wall -pedantic -Wno-long-long \
+         -DSC_INCLUDE_DYNAMIC_PROCESSES -fpermissive -std=c++11
+DFILES = -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)"
+
+#Linker
+LINKER = g++
+SC_LIB = $(SYSTEMC)/lib-$(TARGET_ARCH)
+LIBDIR = -L$(SC_LIB) -Wl,-rpath=$(SC_LIB)
+LIBS   = -lstdc++ -lsystemc 
+LFLAGS = 2>&1 | c++filt
+
+#Sources and Objects
+SOURCES := $(wildcard $(SRCDIR)/*.cpp)
+HEADERS := $(wildcard $(HDRDIR)/*.hpp)
+TBSRCS  := $(wildcard $(TBDIR)/*.cpp)
+TBHDRS  := $(wildcard $(TBDIR)/*.hpp)
+OBJECTS := $(SOURCES:$(SRCDIR)/%.cpp=%.o)
+TBOBJS  := $(TBSRCS:$(TBDIR)/%.cpp=%.o)
+
+
+#Make execution
+$(TARGET): $(OBJECTS) $(TBOBJS) $(SC_LIB)/libsystemc.a
+	@$(LINKER) $(LIBDIR) -o $@ $(OBJECTS) $(TBOBJS) $(LIBS) $(LFLAGS)
+	@echo "Linking complete!"
+
+$(OBJECTS): %.o : $(SRCDIR)/%.cpp
+	@$(CC) $(INCDIR) $(CFLAGS) -c $< -o $@
+	@echo "Compiled "$<" successfully!"
+
+$(TBOBJS): %.o : $(TBDIR)/%.cpp
+	@$(CC) $(INCDIR) $(CFLAGS) -c $< -o $@
+	@echo "Compiled "$<" successfully!"
+
+.PHONEY: clean
+clean:
+	@rm $(OBJECTS) $(TBOBJS)
+	@echo "Cleanup complete!"
+
+.PHONEY: remove
+remove:
+	@rm -f $(TARGET)
+	@rm $(OBJECTS) $(TBOBJS)
+	@echo "Executable removed!"
+
