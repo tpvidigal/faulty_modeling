@@ -1,4 +1,5 @@
-Model of Fault-Tolerant Control System for Control Surfaces of Aircrafts
+Fault-Tolerant Control System Modeling in SystemC
+Case of Study: Pitch of Aircraft
 
 # General informations ########################################################
 
